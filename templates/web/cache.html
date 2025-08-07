@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <title>{{ i18n "Cache Example" .lang }}</title>
+    <link rel="icon" href="static/image/favicon.png" type="image/x-icon" />
+  </head>
+  <body class="flex flex-col bg-gray-50 min-h-screen">
+    {{- template "common.header" . }}
+    <!-- Info Msg Box -->
+    {{- template "common.infoBox" . }}
+    <!-- Error Msg Box -->
+    {{- template "common.errorBox" . }}
+    <main class="flex-grow">
+      <div class="mx-auto p-4 container">
+        <h1 class="mb-2 text-3xl">{{ i18n "Cache Query" .lang }}</h1>
+        <div class="inline-block border-orange-400 bg-orange-100 mx-auto my-4 px-4 py-2 border rounded-md text-gray-600">
+          <p>1. {{ i18n "MD5 is a cryptographic hash function that produces a 128-bit hash, here we force it runs more than 5 seconds." .lang }}</p>
+          <p>2. {{ i18n "The memory backend cache might miss hits because its content isn't shared across multiple running Pods." .lang }}</p>
+        </div>
+        <div class="flex my-2">
+          <label for="backend" class="mr-4 p-2 font-medium text-gray-700">{{ i18n "Backend" .lang }}</label>
+          <select id="backend" name="backend" class="border-gray-300 p-2 border rounded-md">
+            <option>memory</option>
+            <option>redis</option>
+          </select>
+
+          <label for="message" class="mr-2 ml-4 p-2 font-medium text-gray-700">{{ i18n "Message" .lang }}</label>
+          <input type="text" id="message" value="something" class="border-gray-300 p-2 border rounded-md w-1/6" />
+
+          <label for="ttl" class="mr-2 ml-4 p-2 font-medium text-gray-700">{{ i18n "TTL (sec)" .lang }}</label>
+          <input type="number" id="ttl" min="0" value="30" class="border-gray-300 p-2 border rounded-md" />
+
+          <button
+            id="queryBtn"
+            type="button"
+            onclick="fetchQuery()"
+            class="bg-blue-500 hover:bg-blue-600 disabled:opacity-50 ml-6 px-4 py-2 rounded text-white"
+          >
+            <span id="buttonText">{{ i18n "Hash Now" .lang }}</span>
+            <svg id="loadingSpinner" class="hidden mx-7 w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v2a6 6 0 100 12v2a8 8 0 01-8-8z"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Query Table -->
+        <div class="my-12">
+          <div class="flex justify-between mb-3">
+            <h2 class="text-xl">{{ i18n "Queries" .lang }}</h2>
+          </div>
+          <table class="border-collapse bg-white border min-w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Backend" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Message" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Digest" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "HitCache" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "TimeCost (sec)" .lang }}</th>
+              </tr>
+            </thead>
+            <tbody id="cacheQueryTableBody">
+              <!-- cache query rows will be appended here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+    {{- template "common.footer" . }}
+  </body>
+</html>
+
+<script>
+  function fetchQuery() {
+    const message = $("#message").val();
+    const backend = $("#backend").val();
+    const ttl = $("#ttl").val();
+
+    // 禁用按钮并显示加载状态
+    const queryBtn = $("#queryBtn");
+    const buttonText = $("#buttonText");
+    const loadingSpinner = $("#loadingSpinner");
+    queryBtn.prop("disabled", true);
+    buttonText.addClass("hidden");
+    loadingSpinner.removeClass("hidden");
+
+    axios
+      .get("api/cache", {
+        params: { message: message, backend: backend, ttl: ttl },
+      })
+      .then((response) => {
+        const query = response.data.data;
+        const taskTableBody = $("#cacheQueryTableBody");
+
+        const row = createQueryRow(message, backend, query);
+        taskTableBody.prepend(row);
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to cache query: " .lang }} + errorMsg);
+      })
+      .finally(() => {
+        // 操作完成后恢复按钮状态
+        queryBtn.prop("disabled", false);
+        buttonText.removeClass("hidden");
+        loadingSpinner.addClass("hidden");
+      });
+  }
+
+  function createQueryRow(message, backend, queryData) {
+    const { digest, timeCost, hitCache } = queryData;
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td class="px-4 py-3 border">${backend}</td>
+      <td class="px-4 py-3 border">${message}</td>
+      <td class="px-4 py-3 border">${digest}</td>
+      <td class="px-4 py-3 border">${hitCache}</td>
+      <td class="px-4 py-3 border">${timeCost}</td>
+      `;
+
+    return row;
+  }
+</script>

@@ -1,0 +1,41 @@
+# -------------- builder & runner container --------------
+FROM golang:1.22 AS builder
+
+RUN sed -i "s@deb.debian.org@mirrors.tencent.com@g" /etc/apt/sources.list.d/debian.sources
+
+RUN apt-get update && apt-get install -y vim
+
+WORKDIR /go/src/
+
+ARG VERSION
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go env -w GO111MODULE=on
+RUN go env -w GOPROXY=https://mirrors.cloud.tencent.com/go/,direct
+
+RUN go mod download
+
+COPY . .
+
+RUN make build
+
+RUN mv /go/src/blueapps-go /usr/bin/blueapps-go
+
+# api docs
+ENV API_DOC_FILE_BASE_DIR=/go/src/pkg/docs
+
+# templates
+ENV TMPL_FILE_BASE_DIR=/go/src/templates
+
+# i18n
+ENV I18N_FILE_BASE_DIR=/go/src/i18n
+
+# static files
+ENV STATIC_FILE_BASE_DIR=/go/src/static
+
+# logs
+RUN mkdir -p /go/src/v3logs
+
+ENV LOG_BASE_DIR=/go/src/v3logs

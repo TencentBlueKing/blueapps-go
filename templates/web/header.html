@@ -1,0 +1,85 @@
+{{- define "common.header" }}
+<header class="bg-gray-700 shadow w-full">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+  <div class="flex flex-row flex-wrap items-center mx-auto p-3 container">
+    <a href="" class="flex items-center text-white">
+      <span class="font-bold text-2xl">{{ i18n "Gin Demo" .lang }}</span>
+    </a>
+    <nav class="flex justify-center items-center ml-auto text-white">
+      <!-- 菜单区 -->
+      <ul class="flex space-x-4">
+        <li class="hover:underline">
+          <a href="home">{{ i18n "Home" .lang }}</a>
+        </li>
+        <li class="hover:underline">
+          <a href="crud">{{ i18n "CRUD" .lang }}</a>
+        </li>
+        <li class="hover:underline">
+          <a href="cache">{{ i18n "Cache" .lang }}</a>
+        </li>
+        <li class="hover:underline">
+          <a href="cloud-api">{{ i18n "Cloud API" .lang }}</a>
+        </li>
+        <li class="hover:underline">
+          <a href="async-task">{{ i18n "Async Task" .lang }}</a>
+        </li>
+        <li class="hover:underline">
+          <a href="obj-storage">{{ i18n "Object Storage" .lang }}</a>
+        </li>
+      </ul>
+      <!-- 按钮区 -->
+      <ul class="flex space-x-4 ml-8">
+        <li>
+          <div class="relative inline-block text-left">
+          <a onclick="showLangMenu()">
+            <img alt="lang" class="inline mr-2 w-6 h-6" src="static/image/lang_{{ .lang }}.png" />
+          </a>
+          <!-- 语言选择菜单 -->
+          <!-- NOTE：如需其他语言可由开发者自行添加 -->
+          <div id="langMenu" class="hidden top-12 -right-10 z-10 absolute bg-white shadow-lg py-1 border border-gray-200 rounded-md w-28">
+            <a onclick="changeLang('zh')" class="flex items-center hover:bg-gray-100 p-2 text-gray-700 text-sm">
+              <img alt="logo" class="inline mr-2 w-6 h-6" src="static/image/lang_zh.png" />
+              <span>中文</span>
+            </a>
+            <a onclick="changeLang('en')" class="flex items-center hover:bg-gray-100 p-2 text-gray-700 text-sm">
+              <img alt="logo" class="inline mr-2 w-6 h-6" src="static/image/lang_en.png" />
+              <span>English</span>
+            </a>
+          </div>
+          </div>
+        </li>
+      </ul>
+      <!-- 登录信息 -->
+      <ul class="flex space-x-4 ml-4 w-24">
+        <li>{{ .user }}</li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // 显示语言选择菜单
+  function showLangMenu() {
+    $("#langMenu").removeClass("hidden");
+  }
+  // 切换语言，关闭菜单，刷新页面
+  function changeLang(lang) {
+    axios.put(`language`, {"lang": lang}).then(() => {
+      location.reload();
+    });
+    $("#langMenu").addClass("hidden");
+  }
+
+  $(document).ready(function () {
+    // 为 axios 预设 csrf token
+    const csrfToken = Cookies.get({{ .appID }} + "-csrf-token");
+    if (csrfToken) {
+      axios.defaults.headers.common['X-CSRF-Token'] = csrfToken;
+    }
+  });
+</script>
+
+{{- end }}

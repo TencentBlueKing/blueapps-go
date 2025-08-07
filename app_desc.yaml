@@ -1,0 +1,65 @@
+specVersion: 3
+appVersion: 1.0.0
+modules:
+  - name: default
+    isDefault: true
+    language: Go
+    spec:
+      hooks:
+        preRelease:
+          procCommand: "blueapps-go migrate"
+          # 注：平台目前仅支持通过环境变量注入配置，如需使用文件配置，需要通过挂载卷手动添加
+          # procCommand: "blueapps-go migrate --conf /app/config.yaml"
+      processes:
+        - name: web
+          # 注：web 进程不推荐直接设置副本数（此时默认 1 副本）
+          # 推荐：在部署后手动在进程管理页面针对不同环境做扩缩容（有记忆）
+          # 如果设置副本数，则预发布 & 生产环境都会使用该配置（资源浪费）
+          # 如果想分环境设置副本数，可以了解下如何使用 envOverlay
+          # replicas: 2
+          resQuotaPlan: default
+          procCommand: "blueapps-go webserver"
+          # 注：平台目前仅支持通过环境变量注入配置，如需使用文件配置，需要通过挂载卷手动添加
+          # procCommand: "blueapps-go webserver --conf /app/config.yaml"
+          services:
+            - name: web
+              targetPort: 5000
+              protocol: TCP
+              exposedType:
+                name: bk/http
+          probes:
+            liveness:
+              httpGet:
+                port: 5000
+                path: "/ping"
+              initialDelaySeconds: 5
+              timeoutSeconds: 3
+              periodSeconds: 30
+              successThreshold: 1
+              failureThreshold: 3
+            readiness:
+              httpGet:
+                port: 5000
+                path: "/ping"
+              initialDelaySeconds: 5
+              timeoutSeconds: 3
+              periodSeconds: 5
+              successThreshold: 1
+              failureThreshold: 3
+        - name: scheduler
+          # scheduler 非单实例可能导致定时任务重复执行！
+          replicas: 1
+          resQuotaPlan: default
+          procCommand: "blueapps-go scheduler"
+          # 注：平台目前仅支持通过环境变量注入配置，如需使用文件配置，需要通过挂载卷手动添加
+          # procCommand: "blueapps-go scheduler --conf /app/config.yaml"
+      observability:
+        monitoring:
+          metrics:
+            - process: web
+              serviceName: web
+              path: /metrics
+              params:
+                # 该 token 的值需与配置 `service.metricToken` 或环境变量 `METRIC_TOKEN` 保持一致，
+                # 否则将导致集群中的 serviceMonitor 无法获取服务指标信息，进而导致蓝鲸监控看板无数据
+                token: metric_token

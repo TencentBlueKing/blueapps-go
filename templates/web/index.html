@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{{ i18n "Gin Demo" .lang }}</title>
+    <link rel="icon" href="static/image/favicon.png" type="image/x-icon" />
+  </head>
+  <body class="bg-yellow-50">
+    <main>
+      <div>
+        <div class="flex justify-center items-center mt-48 font-bold text-8xl text-sky-500">
+          <img alt="logo" src="static/image/favicon.png" class="pr-10" />
+          {{ i18n "Gin Demo" .lang }}
+        </div>
+        <div class="flex justify-center items-center mt-6 font-bold text-sky-500 text-xl hover:text-sky-400">
+          <a class="mx-2" href="home" title="home"> {{ i18n "Explore More >" .lang }} </a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

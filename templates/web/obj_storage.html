@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <title>{{ i18n "Object Storage Example" .lang }}</title>
+    <link rel="icon" href="static/image/favicon.png" type="image/x-icon" />
+  </head>
+  <body class="flex flex-col bg-gray-50 min-h-screen">
+    {{- template "common.header" . }}
+    <!-- Info Msg Box -->
+    {{- template "common.infoBox" . }}
+    <!-- Error Msg Box -->
+    {{- template "common.errorBox" . }}
+    <main class="flex-grow">
+      <div class="mx-auto p-4 container">
+        <h1 class="mb-2 text-3xl">{{ i18n "Object Storage" .lang }}</h1>
+        {{- if not .objectStorageEnabled }}
+        <div class="inline-block bg-red-100 mx-auto my-4 px-4 py-2 border border-red-400 rounded-md text-gray-600">
+          {{ i18n "Object storage is not enabled, please check addons (bkrepo) configuration in file or environment variables." .lang }}
+        </div>
+        {{- else }}
+        <div class="flex justify-between mt-10">
+          <div class="flex">
+            <a onclick="backToParentDir()" class="hover:cursor-pointer">
+              <img alt="logo" class="inline mr-2 w-8 h-8" src="static/image/arrow_left.png" />
+            </a>
+            <h2 id="currentDir" class="text-2xl text-gray-700 tracking-wide">/</h2>
+          </div>
+          <div class="flex">
+            <input
+              id="directoryName"
+              aria-label="directory"
+              class="border-gray-300 mr-2 px-2 border rounded-md w-48"
+              placeholder='{{ i18n "Enter directory name" .lang }}'
+            />
+            <button id="mkdirBtn" class="bg-blue-500 hover:bg-blue-600 mr-2 px-4 py-2 rounded text-white" onclick="createDir()">
+              {{ i18n "CreateDir" .lang }}
+            </button>
+            <button id="uploadBtn" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded text-white">{{ i18n "UploadFile" .lang }}</button>
+            <input type="file" id="fileInput" class="hidden" />
+          </div>
+        </div>
+
+        <!-- File / Folder Table -->
+        <div class="mt-4">
+          <table class="border-collapse bg-white border min-w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 w-1/3 font-medium text-gray-70 text-left">{{ i18n "Name" .lang }}</th>
+                <th class="px-4 py-3 w-1/12 font-medium text-gray-70 text-left">{{ i18n "Size" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "UpdatedAt" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "Actions" .lang }}</th>
+              </tr>
+            </thead>
+            <tbody id="objectTableBody">
+              <!-- Object rows will be appended here -->
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          {{- template "common.pagination" . }}
+        </div>
+        {{- end }}
+      </div>
+    </main>
+    {{- template "common.footer" . }}
+  </body>
+</html>
+
+<script>
+  let curPage = 1;
+  const pageSize = 10;
+  let curDirPath = "/";
+
+  function backToParentDir() {
+    if (curDirPath === "/") {
+      return;
+    }
+    targetDirPath = curDirPath.replace(/\/[^\/]+\/$/, "/");
+    fetchCurDirObjects(targetDirPath);
+  }
+
+  function fetchCurDirObjects(targetDirPath = "/", targetPage = 1) {
+    const url = `api/obj-storage/objects?dirPath=${targetDirPath}&page=${targetPage}&limit=${pageSize}`;
+
+    axios
+      .get(url)
+      .then((response) => {
+        curPage = targetPage;
+        curDirPath = targetDirPath;
+
+        const { count, results: objects } = response.data.data;
+        const objectTableBody = $("#objectTableBody");
+        objectTableBody.html("");
+
+        objects.forEach((object) => {
+          tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const row = createObjectRow(object, tz);
+          objectTableBody.append(row);
+        });
+
+        $("#total").text({{ i18n "Total Results: " .lang }} + `${count}`);
+        const callback = fetchCurDirObjects.bind(null, curDirPath);
+        renderPagination(count, curPage, pageSize, callback);
+
+        $("#currentDir").text(`${targetDirPath.split("/").join(" / ")}`);
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to list directory objects: " .lang }} + errorMsg);
+      });
+  }
+
+  function createObjectRow(objectData, timeZone) {
+    const { name, size, updatedAt, isDir } = objectData;
+
+    const formattedUpdatedAt = updatedAt
+      ? new Date(updatedAt)
+          .toLocaleString("zh-hans", { timeZone })
+          .replace(/\b(\d)\b/g, "0$1")
+          .replace(/\//g, "-")
+      : "--";
+
+    const row = document.createElement("tr");
+    row.classList.add("border-t");
+
+    if (isDir) {
+      row.innerHTML = `
+      <td class="px-4 py-2">
+        <span>
+          <img class="inline mr-2 w-5 h-5" src="static/image/folder.png" alt="logo">
+          <a
+            class="py-1.5 pr-3 rounded text-blue-400 hover:text-blue-500 hover:underline hover:cursor-pointer"
+            onclick="fetchCurDirObjects('${curDirPath}${name}/')"
+          >${name}</a>
+        </span>
+      </td>
+      <td class="px-4 py-3"></td>
+      <td class="px-4 py-3"></td>
+      <td class="px-4 py-3">
+        <!-- 注：Download Dir 没有意义，这里使用 invisible 占位但不显示，目的是保持不同国际化语言是布局不崩坏-->
+        <a class="invisible py-1.5 pr-3">{{ i18n "Download" .lang }}</a>
+        <a
+          class="px-3 py-1.5 rounded text-red-400 hover:text-red-500 hover:underline"
+          onclick="deleteDir('${name}')"
+        >{{ i18n "Delete" .lang }}</a>
+      </td>
+    `;
+    } else {
+      row.innerHTML = `
+      <td class="px-4 py-2">
+        <span><img class="inline mr-2 w-5 h-5" src="static/image/file.png" alt="logo">${name}</span>
+      </td>
+      <td class="px-4 py-3">${formatBytes(size)}</td>
+      <td class="px-4 py-3">${formattedUpdatedAt}</td>
+      <td class="px-4 py-3">
+        <a
+          href="api/obj-storage/objects/download?dirPath=${curDirPath}&objName=${name}"
+          class="py-1.5 pr-3 rounded text-blue-400 hover:text-blue-500 hover:underline"
+        >{{ i18n "Download" .lang }}</a>
+        <a
+          class="px-3 py-1.5 rounded text-red-400 hover:text-red-500 hover:underline"
+          onclick="deleteObject('${name}')"
+        >{{ i18n "Delete" .lang }}</a>
+      </td>
+    `;
+    }
+
+    return row;
+  }
+
+  function createDir() {
+    dirNameInput = $("#directoryName");
+
+    if (dirNameInput.val() === "") {
+      dirNameInput.addClass("border-red-500");
+      return;
+    } else {
+      dirNameInput.removeClass("border-red-500");
+    }
+
+    axios
+      .post(`api/obj-storage/dirs`, { dirPath: `${curDirPath}${dirNameInput.val()}/` })
+      .then(() => {
+        dirNameInput.val("");
+        showInfo({{ i18n "Directory created successfully" .lang }});
+        fetchCurDirObjects(curDirPath, curPage);
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to create directory: " .lang }} + errorMsg);
+      });
+  }
+
+  function deleteDir(name) {
+    const confirmation = confirm({{ i18n "Are you sure you want to delete directory" .lang }} + ` ${name}?`);
+
+    if (confirmation) {
+      axios
+        .delete(`api/obj-storage/dirs?dirPath=${curDirPath}${name}/`)
+        .then(() => {
+          showInfo({{ i18n "Directory" .lang }} + ` ${name} ` + {{ i18n "deleted successfully" .lang }});
+          fetchCurDirObjects(curDirPath, curPage);
+        })
+        .catch((error) => {
+          errorMsg = error.response ? error.response.data.message : error.message;
+          showError({{ i18n "Failed to delete directory" .lang }} + ` ${name}: ${errorMsg}`);
+        });
+    }
+  }
+
+  function uploadObject(object) {
+    const formData = new FormData();
+    formData.append("file", object);
+    formData.append("dirPath", curDirPath);
+
+    axios
+      .post("api/obj-storage/objects", formData)
+      .then(() => {
+        showInfo({{ i18n "Object upload successfully" .lang }});
+        fetchCurDirObjects(curDirPath, curPage);
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to upload object: " .lang }} + errorMsg);
+      });
+  }
+
+  function deleteObject(objName) {
+    const confirmation = confirm(`Are you sure you want to delete object ${objName}?`);
+
+    if (confirmation) {
+      axios
+        .delete(`api/obj-storage/objects?dirPath=${curDirPath}&objName=${objName}`)
+        .then(() => {
+          showInfo({{ i18n "Object" .lang }} + ` ${objName} ` + {{ i18n "deleted successfully" .lang }});
+          fetchCurDirObjects(curDirPath, curPage);
+        })
+        .catch((error) => {
+          errorMsg = error.response ? error.response.data.message : error.message;
+          showError({{ i18n "Failed to delete object" .lang }} + ` ${objName}: ${errorMsg}`);
+        });
+    }
+  }
+  function formatBytes(bytes) {
+    if (bytes === 0) return "0 Bytes";
+
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  }
+
+  $(document).ready(function () {
+    // 为 axios 预设 csrf token
+    const csrfToken = Cookies.get({{ .appID }} + "-csrf-token");
+    if (csrfToken) {
+        axios.defaults.headers.common['X-CSRF-Token'] = csrfToken;
+    }
+
+    if ({{ .objectStorageEnabled }}) {
+        fetchCurDirObjects(curDirPath);
+    }
+
+    // 文件上传
+    $("#uploadBtn").on("click", function () {
+      $("#fileInput").click();
+    });
+
+    $("#fileInput").on("change", function () {
+      const file = this.files[0];
+      if (file) {
+        uploadObject(file);
+      }
+    });
+  });
+</script>

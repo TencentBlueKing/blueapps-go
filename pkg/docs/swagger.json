@@ -1,0 +1,1324 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "蓝鲸开发者中心 SaaS 后台 API 文档",
+        "title": "BkApp API DOC",
+        "contact": {},
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/cache": {
+            "get": {
+                "tags": [
+                    "cache"
+                ],
+                "summary": "缓存示例",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "待哈希数据",
+                        "name": "message",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "缓存类型，可选值：redis、memory",
+                        "name": "backend",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "缓存过期时间（单位：秒）",
+                        "name": "expire",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/serializer.CacheResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categories": {
+            "get": {
+                "tags": [
+                    "crud"
+                ],
+                "summary": "获取分类列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/serializer.CategoryListResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "crud"
+                ],
+                "summary": "创建分类",
+                "parameters": [
+                    {
+                        "description": "创建分类请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/serializer.CategoryCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categories/{id}": {
+            "get": {
+                "tags": [
+                    "crud"
+                ],
+                "summary": "获取单个分类",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "分类 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/serializer.CategoryRetrieveResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "crud"
+                ],
+                "summary": "更新分类",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "分类 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新分类请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/serializer.CategoryUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "crud"
+                ],
+                "summary": "删除分类",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "分类 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/emails": {
+            "post": {
+                "tags": [
+                    "cloud-api"
+                ],
+                "summary": "发送邮件",
+                "parameters": [
+                    {
+                        "description": "邮件配置",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/serializer.SendEmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/entries": {
+            "get": {
+                "tags": [
+                    "crud"
+                ],
+                "summary": "获取条目列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/ginx.PaginatedResp"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "results": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/serializer.EntryListResponse"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "crud"
+                ],
+                "summary": "创建条目",
+                "parameters": [
+                    {
+                        "description": "创建条目请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/serializer.EntryCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/entries/{id}": {
+            "get": {
+                "tags": [
+                    "crud"
+                ],
+                "summary": "获取单个条目",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "条目 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/serializer.EntryRetrieveResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "crud"
+                ],
+                "summary": "更新条目",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "条目 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新条目请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/serializer.EntryUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "crud"
+                ],
+                "summary": "删除条目",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "条目 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/obj-storage/dirs": {
+            "post": {
+                "tags": [
+                    "object-storage"
+                ],
+                "summary": "创建目录",
+                "parameters": [
+                    {
+                        "description": "创建目录请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/serializer.CreateDirRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "object-storage"
+                ],
+                "summary": "删除目录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "dirPath",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/obj-storage/objects": {
+            "get": {
+                "tags": [
+                    "object-storage"
+                ],
+                "summary": "获取已上传对象列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "dirPath",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/ginx.PaginatedResp"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "results": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/serializer.CategoryListResponse"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "object-storage"
+                ],
+                "summary": "上传对象",
+                "parameters": [
+                    {
+                        "description": "上传对象请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/serializer.UploadObjectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "object-storage"
+                ],
+                "summary": "删除已上传对象",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "dirPath",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "objName",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/obj-storage/objects/download": {
+            "get": {
+                "tags": [
+                    "object-storage"
+                ],
+                "summary": "下载对象",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "dirPath",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "objName",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "文件内容",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/periodic-tasks": {
+            "get": {
+                "tags": [
+                    "async-task"
+                ],
+                "summary": "获取定时任务列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/serializer.PeriodicTaskListResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "async-task"
+                ],
+                "summary": "创建定时任务",
+                "parameters": [
+                    {
+                        "description": "定时任务配置",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/serializer.PeriodicTaskCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/periodic-tasks/{id}": {
+            "delete": {
+                "tags": [
+                    "async-task"
+                ],
+                "summary": "删除定时任务",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "定时任务 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/periodic-tasks/{id}/enabled": {
+            "put": {
+                "tags": [
+                    "async-task"
+                ],
+                "summary": "切换定时任务启用状态",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "定时任务 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/tasks": {
+            "get": {
+                "tags": [
+                    "async-task"
+                ],
+                "summary": "获取任务列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/ginx.PaginatedResp"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "results": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/serializer.TaskListResponse"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "async-task"
+                ],
+                "summary": "创建异步任务",
+                "parameters": [
+                    {
+                        "description": "异步任务配置",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/serializer.TaskCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ginx.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz": {
+            "get": {
+                "tags": [
+                    "basic"
+                ],
+                "summary": "提供服务健康状态",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "healthz api token",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/serializer.HealthzResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/language": {
+            "put": {
+                "tags": [
+                    "basic"
+                ],
+                "summary": "修改语言",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/metrics": {
+            "get": {
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "basic"
+                ],
+                "summary": "Prometheus 指标",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "metrics api token",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/ping": {
+            "get": {
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "basic"
+                ],
+                "summary": "服务探活",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/version": {
+            "get": {
+                "tags": [
+                    "basic"
+                ],
+                "summary": "服务版本信息",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/serializer.VersionResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "ginx.PaginatedResp": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "results": {}
+            }
+        },
+        "ginx.Response": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
+                },
+                "requestID": {
+                    "type": "string"
+                }
+            }
+        },
+        "multipart.FileHeader": {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string"
+                },
+                "header": {
+                    "$ref": "#/definitions/textproto.MIMEHeader"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "probe.Result": {
+            "type": "object",
+            "properties": {
+                "core": {
+                    "type": "boolean"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "healthy": {
+                    "type": "boolean"
+                },
+                "issue": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.CacheResponse": {
+            "type": "object",
+            "properties": {
+                "digest": {
+                    "type": "string"
+                },
+                "hitCache": {
+                    "type": "boolean"
+                },
+                "timeCost": {
+                    "type": "number"
+                }
+            }
+        },
+        "serializer.CategoryCreateRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 1
+                }
+            }
+        },
+        "serializer.CategoryListResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updater": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.CategoryRetrieveResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updater": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.CategoryUpdateRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 1
+                }
+            }
+        },
+        "serializer.CreateDirRequest": {
+            "type": "object",
+            "required": [
+                "dirPath"
+            ],
+            "properties": {
+                "dirPath": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.EntryCreateRequest": {
+            "type": "object",
+            "required": [
+                "categoryID",
+                "name",
+                "price"
+            ],
+            "properties": {
+                "categoryID": {
+                    "type": "integer"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 1
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "serializer.EntryListResponse": {
+            "type": "object",
+            "properties": {
+                "categoryID": {
+                    "type": "integer"
+                },
+                "categoryName": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updater": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.EntryRetrieveResponse": {
+            "type": "object",
+            "properties": {
+                "categoryID": {
+                    "type": "integer"
+                },
+                "categoryName": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updater": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.EntryUpdateRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "price"
+            ],
+            "properties": {
+                "categoryID": {
+                    "type": "integer"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 1
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "serializer.HealthzResponse": {
+            "type": "object",
+            "properties": {
+                "fatal": {
+                    "type": "boolean"
+                },
+                "healthy": {
+                    "type": "boolean"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/probe.Result"
+                    }
+                },
+                "time": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.PeriodicTaskCreateRequest": {
+            "type": "object",
+            "properties": {
+                "args": {
+                    "type": "array",
+                    "items": {}
+                },
+                "cron": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.PeriodicTaskListResponse": {
+            "type": "object",
+            "properties": {
+                "args": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "cron": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.SendEmailRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "receiver",
+                "title"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "receiver": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.TaskCreateRequest": {
+            "type": "object",
+            "properties": {
+                "args": {
+                    "type": "array",
+                    "items": {}
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.TaskListResponse": {
+            "type": "object",
+            "properties": {
+                "args": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "serializer.UploadObjectRequest": {
+            "type": "object",
+            "properties": {
+                "dirPath": {
+                    "type": "string"
+                },
+                "file": {
+                    "$ref": "#/definitions/multipart.FileHeader"
+                }
+            }
+        },
+        "serializer.VersionResponse": {
+            "type": "object",
+            "properties": {
+                "buildTime": {
+                    "type": "string"
+                },
+                "gitCommit": {
+                    "type": "string"
+                },
+                "goVersion": {
+                    "type": "string"
+                },
+                "tmplVersion": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "textproto.MIMEHeader": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

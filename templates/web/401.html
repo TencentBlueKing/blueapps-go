@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>401 Unauthorized</title>
+    <link rel="icon" href="static/image/favicon.png" type="image/x-icon" />
+  </head>
+  <body class="flex justify-center items-center min-h-screen">
+    <main class="relative">
+      <div class="top-[-94px] absolute inset-x-0 flex justify-center">
+        <img src="static/image/blue_whale.jpg" alt="Whale" class="w-44 h-28" />
+      </div>
+      <div class="border-gray-200 bg-white shadow-lg p-6 border w-screen-2xl min-w-96">
+        <h2 class="mb-4 font-normal text-2xl text-center">{{ i18n "您需要登录蓝鲸" .lang }}</h2>
+        <div class="border-gray-300 border-t shabow-lg"></div>
+        <div class="my-5">
+          <p class="mb-2 font-semibold text-gray-700">{{ i18n "看起来：" .lang }}</p>
+          <ol class="text-gray-400 text-left list-decimal list-inside">
+            <li class="mt-2">{{ i18n "您还没有登录蓝鲸" .lang }}</li>
+            <li class="mt-2">{{ i18n "您之前的登录已经失效了" .lang }}</li>
+          </ol>
+        </div>
+        {{ if .loginUrl }}
+        <div class="flex justify-end">
+          <a href="{{ .loginUrl }}" class="bg-green-400 hover:bg-green-500 px-4 py-2 rounded text-white"> {{ i18n "立即登录" .lang }} </a>
+        </div>
+        {{ else }}
+        <p class="text-gray-400 text-sm">{{ printf (i18n "注意：当前认证方式（%s）不支持登录跳转" .lang) .authType }}</p>
+        {{ end }}
+      </div>
+    </main>
+  </body>
+</html>

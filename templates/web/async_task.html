@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <title>{{ i18n "Async Task Example" .lang }}</title>
+    <link rel="icon" href="static/image/favicon.png" type="image/x-icon" />
+  </head>
+  <body class="flex flex-col bg-gray-50 min-h-screen">
+    {{- template "common.header" . }}
+    <!-- Info Msg Box -->
+    {{- template "common.infoBox" . }}
+    <!-- Error Msg Box -->
+    {{- template "common.errorBox" . }}
+    <main class="flex-grow">
+      <div class="mx-auto p-4 container">
+        <h1 class="mb-2 text-3xl">{{ i18n "Async Task: Fibonacci" .lang }}</h1>
+        <!-- Fibonacci Sequence tips -->
+        <div class="inline-block border-orange-400 bg-orange-100 mx-auto my-4 px-4 py-2 border rounded-md text-gray-600">
+          {{ i18n "Fibonacci Sequence is a series of numbers in which each number is the sum of the two preceding ones, starting from 0 and 1." .lang }}
+        </div>
+        <div class="flex my-2">
+          <label for="cron" class="mr-4 p-2 font-medium text-gray-700">
+            <a href="https://crontab.guru/" target="_blank" class="border-gray-600 pb-2" style="border-bottom: 2px dashed">{{ i18n "Cron" .lang }}</a>
+          </label>
+          <input id="cron" class="border-gray-300 p-2 border rounded-md w-1/5" placeholder="*/5 4,5 12 3 2" value="*/5 * * * *" />
+          <label id="countLabel" for="count" class="mr-2 ml-4 p-2 font-medium text-gray-700">Fib(N)</label>
+          <!-- 重要：修改最大值之前需要做好下发任务后机器 CPU 暴涨卡死的心理准备 -->
+          <input type="number" min="0" max="50" value="10" id="count" class="border-gray-300 p-2 border rounded-md w-1/6" />
+          <button
+            id="applyTaskBtn"
+            type="button"
+            onclick="applyTask()"
+            class="bg-blue-500 hover:bg-blue-600 ml-6 px-4 py-2 rounded text-white"
+          >
+            {{ i18n "Apply Now" .lang }}
+          </button>
+          <button type="button" onclick="addPeriodicTask()" class="bg-blue-500 hover:bg-blue-600 ml-6 px-4 py-2 rounded text-white">
+            {{ i18n "Add Periodic Task" .lang }}
+          </button>
+        </div>
+
+        <!-- Periodic task Table -->
+        <div class="my-12">
+          <div class="flex justify-between mb-3">
+            <h2 class="text-xl">{{ i18n "Periodic Tasks" .lang }}</h2>
+          </div>
+          <table class="border-collapse bg-white border min-w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "ID" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Cron" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "TaskName" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "Args" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Creator" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Actions" .lang }}</th>
+              </tr>
+            </thead>
+            <tbody id="periodicTaskTableBody">
+              <!-- Periodic task rows will be appended here -->
+            </tbody>
+          </table>
+        </div>
+        <hr />
+
+        <!-- Task Table -->
+        <div class="my-12">
+          <div class="flex justify-start mb-3">
+            <h2 class="text-xl">{{ i18n "Executed Tasks" .lang }}</h2>
+            <p class="mt-2 ml-2 text-gray-400 text-xs">{{ i18n "(auto refresh every 10s)" .lang }}</p>
+          </div>
+          <table class="border-collapse bg-white border min-w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "ID" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "Name" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "Args" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "Result" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "StartedAt" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "Duration" .lang }}</th>
+              </tr>
+            </thead>
+            <tbody id="taskTableBody">
+              <!-- Task rows will be appended here -->
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          {{- template "common.pagination" . }}
+        </div>
+      </div>
+    </main>
+    {{- template "common.footer" . }}
+  </body>
+</html>
+
+<script>
+  let curPage = 1;
+  const pageSize = 20;
+
+  function fetchPeriodicTasks() {
+    axios
+      .get("api/periodic-tasks")
+      .then((response) => {
+        const tasks = response.data.data;
+        const taskTableBody = $("#periodicTaskTableBody");
+        taskTableBody.html("");
+
+        tasks.forEach((task) => {
+          const row = createPeriodicTaskRow(task);
+          taskTableBody.append(row);
+        });
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError("Failed to fetch periodic tasks: " + errorMsg);
+      });
+  }
+
+  function createPeriodicTaskRow(taskData) {
+    const { id, cron, name, args, enabled, creator } = taskData;
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td class="px-4 py-3 border">${id}</td>
+      <td class="px-4 py-3 border">${cron}</td>
+      <td class="px-4 py-3 border">${name}</td>
+      <td class="px-4 py-3 border">${args}</td>
+      <td class="px-4 py-3 border">${creator}</td>
+      <td class="px-4 py-3 border">
+        <a
+          class="px-3 py-1.5 rounded ${
+            enabled ? "text-red-400 hover:text-red-500" : "text-green-400 hover:text-green-500"
+          }   hover:underline"
+          onclick="togglePeriodicTaskEnabled(${id}, ${enabled})"
+        >${enabled ? {{ i18n "Disable" .lang }} : {{ i18n "Enable" .lang }}}</a>
+        <a
+          class="px-3 py-1.5 rounded text-red-400 hover:text-red-500 hover:underline"
+          onclick="deletePeriodicTask(${id})"
+        >{{ i18n "Delete" .lang }}</a>
+      </td>
+      `;
+
+    return row;
+  }
+
+  function addPeriodicTask() {
+    const cronInput = $("#cron");
+    const countInput = $("#count");
+
+    if (!cronInput.val()) {
+      showError({{ i18n "cron required!" .lang }});
+      return;
+    }
+    if (!countInput.val()) {
+      showError({{ i18n "count required!" .lang }});
+      return;
+    }
+    axios
+      .post("api/periodic-tasks", {
+        name: "CalcFib",
+        cron: cronInput.val(),
+        args: [parseInt(countInput.val())],
+      })
+      .then(() => {
+        showInfo({{ i18n "Periodic task apply successfully" .lang }});
+        fetchPeriodicTasks();
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to apply periodic task: " .lang }} + errorMsg);
+      });
+  }
+
+  function togglePeriodicTaskEnabled(taskId, curEnabled) {
+    axios
+      .put(`api/periodic-tasks/${taskId}/enabled`)
+      .then(() => {
+        enableStatus = curEnabled ? {{ i18n "disabled" .lang }} : {{ i18n "enabled" .lang }};
+        showInfo({{ i18n "Periodic task" .lang }} + ` ${taskId} ${enableStatus}` + {{ i18n "successfully" .lang }});
+        fetchPeriodicTasks();
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        enableStatus = curEnabled ? {{ i18n "disabled" .lang }} : {{ i18n "enabled" .lang }};
+        showError({{ i18n "Periodic task" .lang }} + ` ${taskId} ${enableStatus}` + {{ i18n "failed" .lang }} + errorMsg);
+      });
+  }
+
+  function deletePeriodicTask(taskId) {
+    const confirmation = confirm({{ i18n "Are you sure you want to delete periodic task" .lang }} + `${taskId}?`);
+
+    if (confirmation) {
+      axios
+        .delete(`api/periodic-tasks/${taskId}`)
+        .then(() => {
+          showInfo({{ i18n "Periodic task" .lang }} + `${taskId}` + {{ i18n "deleted successfully" .lang }});
+          fetchPeriodicTasks();
+        })
+        .catch((error) => {
+          errorMsg = error.response ? error.response.data.message : error.message;
+          showError({{ i18n "Failed to delete periodic task" .lang }} + `${taskId}: ${errorMsg}`);
+        });
+    }
+  }
+
+  function fetchTasks(targetPage = 1) {
+    const url = `api/tasks?page=${targetPage}&limit=${pageSize}`;
+
+    axios
+      .get(url)
+      .then((response) => {
+        const { count, results: tasks } = response.data.data;
+        const taskTableBody = $("#taskTableBody");
+        taskTableBody.html("");
+
+        tasks.forEach((task) => {
+          tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const row = createTaskRow(task, tz);
+          taskTableBody.append(row);
+        });
+
+        $("#total").text({{ i18n "Total Results: " .lang }} + `${count}`);
+        curPage = targetPage;
+        renderPagination(count, curPage, pageSize, fetchTasks);
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to fetch executed tasks: " .lang }} + errorMsg);
+      });
+  }
+
+  function createTaskRow(taskData, timeZone) {
+    const { id, name, args, result, startedAt, duration } = taskData;
+
+    const formattedStartTime = startedAt
+      ? new Date(startedAt)
+          .toLocaleString("zh-hans", { timeZone })
+          .replace(/\b(\d)\b/g, "0$1")
+          .replace(/\//g, "-")
+      : "--";
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+    <td class="px-4 py-3 border">${id}</td>
+    <td class="px-4 py-3 border">${name}</td>
+    <td class="px-4 py-3 border">${args}</td>
+    <td class="px-4 py-3 border">${result ? result : "--"}</td>
+    <td class="px-4 py-3 border">${formattedStartTime}</td>
+    <td class="px-4 py-3 border">${duration.toFixed(2)}s</td>
+    `;
+
+    return row;
+  }
+
+  function applyTask() {
+    const countInput = $("#count");
+
+    if (!countInput.val()) {
+      showError({{ i18n "count required!" .lang }});
+      return;
+    }
+    axios
+      .post("api/tasks", {
+        name: "CalcFib",
+        args: [parseInt(countInput.val())],
+      })
+      .then(() => {
+        showInfo({{ i18n "Task apply successfully" .lang }});
+        fetchTasks();
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to apply task: " .lang }} + errorMsg);
+      });
+  }
+
+  $(document).ready(function () {
+    fetchPeriodicTasks();
+    fetchTasks();
+
+    // 为 axios 预设 csrf token
+    const csrfToken = Cookies.get({{ .appID }} + "-csrf-token");
+    if (csrfToken) {
+        axios.defaults.headers.common['X-CSRF-Token'] = csrfToken;
+    }
+
+    // 限制输入框的最大最小值
+    $("#count").on("input", function (event) {
+      value = Math.max(0, event.target.value);
+      event.target.value = Math.min(50, value);
+    });
+
+    // 每 10 秒重新拉取数据
+    setInterval(function () {
+      fetchTasks(curPage);
+    }, 10000);
+
+    // 鼠标悬停时显示红色下划线
+    $("#applyTaskBtn").hover(
+      function () {
+        $("#countLabel").addClass("border-b-2 border-red-500");
+      },
+      function () {
+        $("#countLabel").removeClass("border-b-2 border-red-500");
+      }
+    );
+  });
+</script>

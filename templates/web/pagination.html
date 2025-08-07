@@ -1,0 +1,73 @@
+<!-- pagination -->
+{{- define "common.pagination" }}
+<nav class="flex justify-between mt-10">
+  <p id="total" class="text-left tracking-wider"></p>
+  <nav class="inline-flex text-right" aria-label="Pagination">
+    <ul id="pagination" class="inline-flex"></ul>
+  </nav>
+</nav>
+
+<script>
+  function renderPagination(total, curPage, pageSize, callback) {
+    const totalPages = Math.ceil(total / pageSize);
+    const paginationContainer = $("#pagination");
+    paginationContainer.html("");
+
+    if (curPage > 1) {
+      const previousPageLink = createPageLink(curPage - 1, "<", callback);
+      paginationContainer.append(previousPageLink);
+    }
+
+    if (totalPages <= 7) {
+      for (let page = 1; page <= totalPages; page++) {
+        const pageLink = createPageLink(page, page, callback);
+        paginationContainer.append(pageLink);
+      }
+    } else {
+      paginationContainer.append(createPageLink(1, 1, callback));
+      if (curPage > 4) {
+        paginationContainer.append(createEllipsis());
+      }
+
+      const startPage = Math.max(2, curPage - 2);
+      const endPage = Math.min(totalPages - 1, curPage + 2);
+
+      for (let page = startPage; page <= endPage; page++) {
+        const pageLink = createPageLink(page, page, callback);
+        paginationContainer.append(pageLink);
+      }
+
+      if (curPage < totalPages - 3) {
+        paginationContainer.append(createEllipsis());
+      }
+      paginationContainer.append(createPageLink(totalPages, totalPages, callback));
+    }
+
+    if (curPage < totalPages) {
+      const nextPageLink = createPageLink(curPage + 1, ">", callback);
+      paginationContainer.append(nextPageLink);
+    }
+  }
+
+  function createPageLink(page, text, callback) {
+    const link = document.createElement("a");
+    link.href = "#";
+    link.className = `inline-flex relative items-center hover:bg-gray-100 mx-1 px-3 py-2 ${
+      page === curPage ? "bg-blue-100 text-blue-500 z-5" : "hover:bg-gray-100"
+    }`;
+    link.textContent = text;
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      callback(page);
+    });
+    return link;
+  }
+
+  function createEllipsis() {
+    const span = document.createElement("span");
+    span.className = "inline-flex items-center mx-1 px-3 py-2";
+    span.textContent = "...";
+    return span;
+  }
+</script>
+{{- end }}

@@ -1,0 +1,105 @@
+<!-- FIXME 其实更合理的做法是，写个函数调用后直接往 document.body 中插入 -->
+<!-- infoBox -->
+{{- define "common.infoBox" }}
+<div class="relative top-10 z-20 flex justify-center items-center">
+  <div id="infoBox" class="fixed border-2 border-green-300 hidden mx-48 py-2 rounded-md" style="background-color: #f2fff4">
+    <svg viewBox="0 0 1024 1024" class="top-0 left-0 absolute pt-4 pl-4 w-9 h-9" fill="green">
+      <path
+        d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4
+        64 512 64zM485.7 670.3l-181-181L350 444l135.8 135.8L712 353.5l45.3 45.3L485.7 670.3z"
+      ></path>
+    </svg>
+    <div id="infoMsg" class="mx-10 my-2 px-2 text-gray-600">
+      <!-- Info message will be appended here -->
+    </div>
+  </div>
+</div>
+
+<script>
+  /*
+   * Show info message in infoBox
+   *
+   * @param msg string
+   * @param timeout int unit: s
+   * @return void
+   */
+  function showInfo(msg, timeout = 3) {
+    const infoBox = document.getElementById("infoBox");
+    const infoMsg = document.getElementById("infoMsg");
+    const errorBox = document.getElementById("errorBox");
+
+    infoMsg.innerText = msg;
+    infoBox.classList.remove("hidden");
+    errorBox.classList.add("hidden");
+
+    if (timeout > 0) {
+      setTimeout(function () {
+        infoMsg.innerText = "";
+        infoBox.classList.add("hidden");
+      }, timeout * 1000);
+    }
+  }
+</script>
+{{- end }}
+
+<!-- errorBox -->
+{{- define "common.errorBox" }}
+<div class="relative top-10 z-20 flex justify-center items-center">
+  <div id="errorBox" class="fixed border-2 hidden mx-48 py-2 border-red-300 rounded-md" style="background-color: #ffeded">
+    <svg viewBox="0 0 1024 1024" class="top-0 left-0 absolute pt-4 pl-4 w-9 h-9" fill="red">
+      <path
+        d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4
+        64 512 64zM670.4 625.1l-45.3 45.3L512 557.3 398.9 670.4l-45.3-45.3L466.7 512
+        353.6 398.9l45.3-45.3L512 466.7l113.1-113.1 45.3 45.3L557.3 512 670.4 625.1z"
+      ></path>
+    </svg>
+    <div id="errorMsg" class="mx-10 my-2 px-2 text-gray-600">
+      <!-- Error message will be appended here -->
+    </div>
+    <span id="closeErrorBox" class="top-0 right-0 absolute pt-4 pr-4 w-9 h-9">
+      <svg class="w-6 h-6 text-gray-400 fill-current" role="button" viewBox="0 0 20 20">
+        <path
+          d="M14.348 5.652a1 1 0 10-1.414-1.414L10 7.586 7.066 4.652A1 1 0 005.652 6.066L8.586 9 5.652
+          11.934a1 1 0 101.414 1.414L10 10.414l2.934 2.934a1 1 0 001.414-1.414L11.414 9l2.934-2.934z"
+        />
+      </svg>
+    </span>
+  </div>
+</div>
+
+<script>
+  /*
+   * Show error message in errorBox
+   *
+   * @param errMsg string
+   * @param timeout int unit: s
+   * @return void
+   */
+  function showError(errMsg, timeout = 10) {
+    const errorBox = document.getElementById("errorBox");
+    const errorMsg = document.getElementById("errorMsg");
+    const infoBox = document.getElementById("infoBox");
+
+    errorMsg.innerText = errMsg;
+    errorBox.classList.remove("hidden");
+    infoBox.classList.add("hidden");
+
+    if (timeout > 0) {
+      setTimeout(function () {
+        errorMsg.innerText = "";
+        errorBox.classList.add("hidden");
+      }, timeout * 1000);
+    }
+  }
+
+  // listen close errorBox
+  document.addEventListener("DOMContentLoaded", function () {
+    const errorBox = document.getElementById("errorBox");
+    const closeErrorBox = document.getElementById("closeErrorBox");
+
+    closeErrorBox.addEventListener("click", function () {
+      errorBox.classList.add("hidden");
+    });
+  });
+</script>
+{{- end }}

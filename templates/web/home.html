@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{{ i18n "Gin Demo" .lang }}</title>
+    <link rel="icon" href="static/image/favicon.png" type="image/x-icon" />
+    <style>
+      .hover-grow:hover {
+        transform: scale(1.05);
+        transition: transform 0.2s;
+      }
+    </style>
+  </head>
+  <body class="flex flex-col bg-gray-50 min-h-screen">
+    {{- template "common.header" . }}
+    <main class="flex-grow mx-auto p-8 container">
+      <section class="mb-12 text-center fade-in">
+        <h2 class="mb-4 font-semibold text-3xl">{{ i18n "BlueKing Golang APP Framework" .lang }}</h2>
+      </section>
+      <!-- CRUD -->
+      <section id="crud" class="mb-8">
+        <a href="crud">
+          <div class="border-gray-300 bg-white shadow-md p-6 border rounded-lg hover-grow">
+            <h3 class="flex mb-4 font-medium text-2xl">
+              <img alt="logo" class="inline mr-2 w-8 h-8" src="static/image/database.png" />
+              {{ i18n "CRUD Example" .lang }}
+            </h3>
+            <p class="mb-4 text-gray-500">{{ i18n "Efficiently manage your database data with CRUD APIs and GORM." .lang }}</p>
+          </div>
+        </a>
+      </section>
+      <!-- Cache -->
+      <section id="cache" class="mb-8">
+        <a href="cache">
+          <div class="border-gray-300 bg-white shadow-md p-6 border rounded-lg hover-grow">
+            <h3 class="flex mb-4 font-medium text-2xl">
+              <img alt="logo" class="inline mr-2 w-8 h-8" src="static/image/cache.png" />
+              {{ i18n "Cache Example" .lang }}
+            </h3>
+            <p class="mb-4 text-gray-500">{{ i18n "Speed up your access and reduce server pressure through memory / redis cache." .lang }}</p>
+          </div>
+        </a>
+      </section>
+      <!-- Cloud API -->
+      <section id="cloudApi" class="mb-8">
+        <a href="cloud-api">
+          <div class="border-gray-300 bg-white shadow-md p-6 border rounded-lg hover-grow">
+            <h3 class="flex mb-4 font-medium text-2xl">
+              <img alt="logo" class="inline mr-2 w-8 h-8" src="static/image/cloud_api.png" />
+              {{ i18n "Cloud API Example" .lang }}
+            </h3>
+            <p class="mb-4 text-gray-500">{{ i18n "Leverage the bk-apigateway-sdk for seamless access to bk-apigw or ESB APIs." .lang }}</p>
+          </div>
+        </a>
+      </section>
+      <!-- Async Task -->
+      <section id="asyncTask" class="mb-8">
+        <a href="async-task">
+          <div class="border-gray-300 bg-white shadow-md p-6 border rounded-lg hover-grow">
+            <h3 class="flex mb-4 font-medium text-2xl">
+              <img alt="logo" class="inline mr-2 w-8 h-8" src="static/image/async_task.png" />
+              {{ i18n "Async Task Example" .lang }}
+            </h3>
+            <p class="mb-4 text-gray-500">{{ i18n "Streamline asynchronous task management with goroutines and robfig/cron." .lang }}</p>
+          </div>
+        </a>
+      </section>
+      <!-- Object Storage -->
+      <section id="objStorage" class="mb-8">
+        <a href="obj-storage">
+          <div class="border-gray-300 bg-white shadow-md p-6 border rounded-lg hover-grow">
+            <h3 class="flex mb-4 font-medium text-2xl">
+              <img alt="logo" class="inline mr-2 w-8 h-8" src="static/image/cloud_upload.png" />
+              {{ i18n "Object Storage Example" .lang }}
+            </h3>
+            <p class="mb-4 text-gray-500">
+              {{ i18n "Interaction with object storage services, enabling efficient data storage, retrieval and management." .lang }}
+            </p>
+          </div>
+        </a>
+      </section>
+    </main>
+    {{- template "common.footer" . }}
+  </body>
+</html>

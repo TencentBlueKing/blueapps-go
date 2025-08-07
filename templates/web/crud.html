@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <title>{{ i18n "CRUD Example" .lang }}</title>
+    <link rel="icon" href="static/image/favicon.png" type="image/x-icon" />
+  </head>
+  <body class="flex flex-col bg-gray-50 min-h-screen">
+    {{- template "common.header" . }}
+    <!-- Info Msg Box -->
+    {{- template "common.infoBox" . }}
+    <!-- Error Msg Box -->
+    {{- template "common.errorBox" . }}
+    <main class="flex-grow">
+      <div class="mx-auto p-4 container">
+        <!-- Category Table -->
+        <div class="my-12">
+          <div class="mb-3">
+            <h2 class="text-xl">{{ i18n "Categories" .lang }}</h2>
+            <div class="flex justify-between mt-2">
+              <button
+                class="bg-blue-500 hover:bg-blue-600 my-2 px-4 py-2 rounded text-white"
+                onclick="showCategoryDialog('create')"
+              >
+                {{ i18n "Add Category" .lang }}
+              </button>
+              <input
+                id="categorySearch"
+                aria-label="search"
+                class="border-gray-300 my-2 p-2 border rounded-md w-1/4"
+                placeholder='{{ i18n "Search category by name or updater" .lang }}'
+              />
+            </div>
+          </div>
+          <table class="border-collapse bg-white border min-w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "ID" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "Name" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "Updater" .lang }}</th>
+                <th class="px-4 py-3 w-1/3 font-medium text-gray-70 text-left">{{ i18n "UpdatedAt" .lang }}</th>
+                <th class="px-4 py-3 w-1/6 font-medium text-gray-70 text-left">{{ i18n "Actions" .lang }}</th>
+              </tr>
+            </thead>
+            <tbody id="categoryTableBody">
+              <!-- Category rows will be appended here -->
+            </tbody>
+          </table>
+        </div>
+
+        <hr />
+
+        <!-- Entry Table -->
+        <div class="mt-8">
+          <div class="mb-3">
+            <h2 class="text-xl">{{ i18n "Entries" .lang }}</h2>
+            <div class="flex justify-between mt-2">
+              <button
+                class="bg-blue-500 hover:bg-blue-600 my-2 px-4 py-2 rounded text-white"
+                onclick="showEntryDialog('create')"
+              >
+                {{ i18n "Add Entry" .lang }}
+              </button>
+              <input
+                id="entrySearch"
+                aria-label="search"
+                class="border-gray-300 my-2 p-2 border rounded-md w-1/4"
+                placeholder='{{ i18n "Search entry by name, desc or updater" .lang }}'
+              />
+            </div>
+          </div>
+          <table class="bg-white min-w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "ID" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Category" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Name" .lang }}</th>
+                <th class="px-4 py-3 w-1/4 font-medium text-gray-70 text-left">{{ i18n "Desc" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Price" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Updater" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "UpdatedAt" .lang }}</th>
+                <th class="px-4 py-3 w-1/8 font-medium text-gray-70 text-left">{{ i18n "Actions" .lang }}</th>
+              </tr>
+            </thead>
+            <tbody id="entryTableBody">
+              <!-- Entry rows will be appended here -->
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          {{- template "common.pagination" . }}
+        </div>
+      </div>
+
+      <!-- Mask -->
+      <div id="globalMask" class="fixed inset-0 hidden bg-gray-800 bg-opacity-50"></div>
+
+      <!-- Add / Edit Category -->
+      <div id="categoryDialog" class="z-10 fixed inset-0 hidden mx-auto w-1/3 overflow-y-hidden">
+        <div class="flex justify-center items-center px-4 pt-4 pb-20 min-h-screen text-center">
+          <div class="bg-white border rounded-2xl w-full text-left">
+            <div class="m-4 p-4">
+              <h2 id="categoryDialogTitle" class="font-medium text-2xl">Add / Edit Category</h2>
+              <div class="mt-2">
+                <input type="hidden" id="categoryID" />
+                <label for="categoryName" class="font-medium text-gray-700 text-sm"
+                  >{{ i18n "Name" .lang }}<span class="ml-1 text-red-500">*</span></label
+                >
+                <input type="text" id="categoryName" class="border-gray-300 my-2 p-2 border rounded-md w-full" />
+              </div>
+            </div>
+            <div class="text-right mx-8 my-4">
+              <button
+                onclick="saveCategory()"
+                class="inline-flex justify-center bg-blue-500 mr-2 px-4 py-2 border rounded-md font-medium text-sm text-white"
+              >
+                {{ i18n "Save" .lang }}
+              </button>
+              <button
+                onclick="cancelCategory()"
+                class="inline-flex justify-center border-gray-300 px-4 py-2 border rounded-md font-medium text-black text-sm"
+              >
+                {{ i18n "Cancel" .lang }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add / Edit Entry -->
+      <div id="entryDialog" class="z-10 fixed inset-0 hidden mx-auto w-1/3 overflow-y-hidden">
+        <div class="flex justify-center items-center px-4 pt-4 pb-20 min-h-screen text-center">
+          <div class="bg-white border rounded-2xl w-full text-left">
+            <div class="m-4 p-4">
+              <h2 id="entryDialogTitle" class="font-medium text-2xl">Add / Edit Entry</h2>
+              <div class="mt-2">
+                <input type="hidden" id="entryID" />
+                <label for="entryCategoryID" class="font-medium text-gray-700 text-sm">
+                  {{ i18n "Category" .lang }}<span class="ml-1 text-red-500">*</span>
+                </label>
+                <select id="entryCategoryID" class="border-gray-300 my-2 p-2 border rounded-md w-full">
+                  <!-- Category options will be appended here -->
+                </select>
+                <label for="entryName" class="font-medium text-gray-700 text-sm">
+                  {{ i18n "Name" .lang }}<span class="ml-1 text-red-500">*</span>
+                </label>
+                <input type="text" id="entryName" class="border-gray-300 my-2 p-2 border rounded-md w-full" />
+                <label for="entryDesc" class="font-medium text-gray-700 text-sm">{{ i18n "Desc" .lang }}</label>
+                <textarea id="entryDesc" class="border-gray-300 my-2 p-2 border rounded-md w-full"></textarea>
+                <label for="entryPrice" class="font-medium text-gray-700 text-sm">
+                  {{ i18n "Price" .lang }}<span class="ml-1 text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  id="entryPrice"
+                  class="border-gray-300 my-2 p-2 border rounded-md w-full"
+                />
+              </div>
+            </div>
+            <div class="text-right mx-8 my-4">
+              <button
+                onclick="saveEntry()"
+                class="inline-flex justify-center bg-blue-500 mr-2 px-4 py-2 border rounded-md font-medium text-sm text-white"
+              >
+                {{ i18n "Save" .lang }}
+              </button>
+              <button
+                onclick="cancelEntry()"
+                class="inline-flex justify-center border-gray-300 px-4 py-2 border rounded-md font-medium text-black text-sm"
+              >
+                {{ i18n "Cancel" .lang }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    {{- template "common.footer" . }}
+  </body>
+</html>
+
+<script>
+  let curPage = 1;
+  let upsertAction = "create";
+  const pageSize = 5;
+
+  function fetchCategories() {
+    axios
+      .get("api/categories", {
+        params: { keyword: categorySearch.value },
+      })
+      .then((response) => {
+        const categories = response.data.data;
+
+        const categoryTableBody = $("#categoryTableBody");
+        categoryTableBody.html("");
+
+        const categorySelect = $("#entryCategoryID");
+        categorySelect.html("");
+
+        categories.forEach((category) => {
+          tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const row = createCategoryRow(category, tz);
+          categoryTableBody.append(row);
+
+          const option = createCategoryOption(category);
+          categorySelect.append(option);
+        });
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to fetch categories: " .lang }} + errorMsg);
+      });
+  }
+
+  function createCategoryRow(categoryData, tz) {
+    const { id, name, updater, updatedAt } = categoryData;
+
+    updatedAtDisplay = new Date(updatedAt)
+      .toLocaleString("zh-hans", { timeZone: tz })
+      .replace(/\b(\d)\b/g, "0$1")
+      .replace(/\//g, "-");
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td class="px-4 py-3 border">${id}</td>
+      <td class="px-4 py-3 border">${name}</td>
+      <td class="px-4 py-3 border">${updater}</td>
+      <td class="px-4 py-3 border">${updatedAtDisplay}</td>
+      <td class="px-4 py-3 border">
+        <a class="px-3 py-1.5 text-blue-400 hover:text-blue-500 hover:underline"
+           data-id="${id}"
+           data-name="${name}"
+           onclick="showCategoryDialog('update', event)">{{ i18n "Edit" .lang }}</a>
+        <a class="px-3 py-1.5 rounded text-red-400 hover:text-red-500 hover:underline"
+           onclick="deleteCategory(${id})">{{ i18n "Delete" .lang }}</a>
+      </td>
+    `;
+
+    return row;
+  }
+
+  function createCategoryOption(category) {
+    const optionElement = document.createElement("option");
+    optionElement.value = category.id;
+    optionElement.textContent = category.name;
+    return optionElement;
+  }
+
+  function showCategoryDialog(action, eventData) {
+    const categoryIDInput = $("#categoryID");
+    const categoryNameInput = $("#categoryName");
+    const globalMask = $("#globalMask");
+    const categoryDialog = $("#categoryDialog");
+    const categoryDialogTitle = $("#categoryDialogTitle");
+
+    categoryIDInput.val(eventData ? eventData.target.dataset.id : "");
+    categoryNameInput.val(eventData ? eventData.target.dataset.name : "");
+
+    globalMask.removeClass("hidden");
+    categoryDialog.removeClass("hidden");
+
+    categoryDialogTitle.text(action === "create" ? {{ i18n "Add Category" .lang }} : {{ i18n "Edit Category" .lang }});
+    upsertAction = action;
+  }
+
+  function saveCategory() {
+    return upsertAction === "create" ? addCategory() : updateCategory();
+  }
+
+  function cancelCategory() {
+    const globalMask = $("#globalMask");
+    const categoryDialog = $("#categoryDialog");
+
+    globalMask.addClass("hidden");
+    categoryDialog.addClass("hidden");
+  }
+
+  function addCategory() {
+    const mask = $("#globalMask");
+    const dialog = $("#categoryDialog");
+
+    const categoryNameInput = $("#categoryName");
+    const categoryName = categoryNameInput.val();
+
+    axios
+      .post("api/categories", { name: categoryName })
+      .then(() => {
+        mask.addClass("hidden");
+        dialog.addClass("hidden");
+        showInfo({{ i18n "Category added successfully" .lang }});
+        fetchCategories();
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to add category:" .lang }} + errorMsg);
+      });
+  }
+
+  function updateCategory() {
+    const mask = $("#globalMask");
+    const dialog = $("#categoryDialog");
+
+    const id = $("#categoryID").val();
+    const name = $("#categoryName").val();
+
+    axios
+      .put(`api/categories/${id}`, { name: name })
+      .then(() => {
+        mask.addClass("hidden");
+        dialog.addClass("hidden");
+        showInfo({{ i18n "Category" .lang }} + ` ${id} ` + {{ i18n "updated successfully" .lang }});
+        fetchCategories();
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to update category: " .lang}} + `${id}: ${errorMsg}`);
+      });
+  }
+
+  function deleteCategory(categoryId) {
+    const confirmation = confirm({{ i18n "Are you sure you want to delete category" .lang }} + ` ${categoryId}?`);
+
+    if (confirmation) {
+      axios
+        .delete(`api/categories/${categoryId}`)
+        .then(() => {
+          showInfo({{ i18n "Category" .lang }} + ` ${categoryId} ` + {{ i18n "deleted successfully" .lang }});
+          fetchCategories();
+        })
+        .catch((error) => {
+          errorMsg = error.response ? error.response.data.message : error.message;
+          showError({{ i18n "Failed to delete category" .lang }} + ` ${categoryId}: ${errorMsg}`);
+        });
+    }
+  }
+
+  function fetchEntries(targetPage = 1) {
+    axios
+      .get("api/entries", {
+        params: {
+          page: targetPage,
+          limit: pageSize,
+          keyword: entrySearch.value,
+        },
+      })
+      .then((response) => {
+        const { count, results: entries } = response.data.data;
+        const entryTableBody = $("#entryTableBody");
+        entryTableBody.html("");
+
+        entries.forEach((entry) => {
+          tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const row = createEntryRow(entry, tz);
+          entryTableBody.append(row);
+        });
+
+        $("#total").text(`{{ i18n "Total Entries:" .lang }}` + `${count}`);
+        curPage = targetPage;
+        renderPagination(count, curPage, pageSize, fetchEntries);
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to fetch entries: " .lang }} + errorMsg);
+      });
+  }
+
+  function createEntryRow(entryData, tz) {
+    const { id, categoryID, categoryName, name, desc, price, updater, updatedAt } = entryData;
+
+    updatedAtDisplay = new Date(updatedAt)
+      .toLocaleString("zh-hans", { timeZone: tz })
+      .replace(/\b(\d)\b/g, "0$1")
+      .replace(/\//g, "-");
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="px-4 py-3 border">${id}</td>
+      <td class="px-4 py-3 border">${categoryName}</td>
+      <td class="px-4 py-3 border">${name}</td>
+      <td class="px-4 py-3 border">${desc}</td>
+      <td class="px-4 py-3 border">${price}</td>
+      <td class="px-4 py-3 border">${updater}</td>
+      <td class="px-4 py-3 border">${updatedAtDisplay}</td>
+      <td class="px-4 py-3 border">
+        <a
+          class="px-3 py-1.5 text-blue-400 hover:text-blue-500 hover:underline"
+          data-id="${id}"
+          data-categoryid="${categoryID}"
+          data-name="${name}"
+          data-desc="${desc}"
+          data-price="${price}"
+          onclick="showEntryDialog('update', event)"
+        >{{ i18n "Edit" .lang }}</a>
+        <a
+          class="px-3 py-1.5 rounded text-red-400 hover:text-red-500 hover:underline"
+          onclick="deleteEntry(${id})"
+        >{{ i18n "Delete" .lang }}</a>
+      </td>
+    `;
+    return row;
+  }
+
+  function showEntryDialog(action, eventData) {
+    const dialogInputs = ["ID", "CategoryID", "Name", "Desc", "Price"];
+
+    dialogInputs.forEach((input) => {
+      const inputElement = $(`#entry${input}`);
+      inputElement.val(eventData ? eventData.target.dataset[input.toLowerCase()] : "");
+    });
+
+    $("#globalMask").removeClass("hidden");
+    $("#entryDialog").removeClass("hidden");
+    $("#entryDialogTitle").text(action === "create" ? {{ i18n "Add Entry" .lang }} : {{ i18n "Edit Entry" .lang }});
+
+    upsertAction = action;
+  }
+
+  function saveEntry() {
+    return upsertAction === "create" ? addEntry() : updateEntry();
+  }
+
+  function cancelEntry() {
+    const globalMask = $("#globalMask");
+    const entryDialog = $("#entryDialog");
+
+    globalMask.addClass("hidden");
+    entryDialog.addClass("hidden");
+  }
+
+  function addEntry() {
+    const mask = $("#globalMask");
+    const dialog = $("#entryDialog");
+
+    categoryID = $("#entryCategoryID").val();
+    name = $("#entryName").val();
+    desc = $("#entryDesc").val();
+    price = $("#entryPrice").val();
+
+    axios
+      .post("api/entries", {
+        categoryID: parseInt(categoryID),
+        name: name,
+        desc: desc,
+        price: parseFloat(price),
+      })
+      .then(() => {
+        mask.addClass("hidden");
+        dialog.addClass("hidden");
+        showInfo({{ i18n "Entry added successfully" .lang }});
+        fetchEntries(curPage);
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to add entry: " .lang }} + errorMsg);
+      });
+  }
+
+  function updateEntry() {
+    const mask = $("#globalMask");
+    const dialog = $("#entryDialog");
+
+    id = $("#entryID").val();
+    categoryID = $("#entryCategoryID").val();
+    name = $("#entryName").val();
+    desc = $("#entryDesc").val();
+    price = $("#entryPrice").val();
+
+    axios
+      .put(`api/entries/${id}`, {
+        categoryID: parseInt(categoryID),
+        name: name,
+        desc: desc,
+        price: parseFloat(price),
+      })
+      .then(() => {
+        mask.addClass("hidden");
+        dialog.addClass("hidden");
+        showInfo({{ i18n "Entry" .lang }} + ` ${id} ` + {{ i18n "updated successfully" .lang }});
+        fetchEntries(curPage);
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to update entry: " .lang }} + `${id}: ${errorMsg}`);
+      });
+  }
+
+  function deleteEntry(entryId) {
+    const confirmation = confirm({{ i18n "Are you sure you want to delete entry" .lang }} + ` ${entryId}?`);
+
+    if (confirmation) {
+      axios
+        .delete(`api/entries/${entryId}`)
+        .then(() => {
+          showInfo({{ i18n "Entry" .lang }} + ` ${entryId} ` + {{ i18n "deleted successfully" .lang }});
+          fetchEntries(curPage);
+        })
+        .catch((error) => {
+          errorMsg = error.response ? error.response.data.message : error.message;
+          showError({{ i18n "Failed to delete entry" .lang }} + ` ${entryId}: ${errorMsg}`);
+        });
+    }
+  }
+
+  $(function () {
+    fetchCategories();
+    fetchEntries(curPage);
+
+    // 为 axios 预设 csrf token
+    const csrfToken = Cookies.get({{ .appID }} + "-csrf-token");
+    if (csrfToken) {
+        axios.defaults.headers.common['X-CSRF-Token'] = csrfToken;
+    }
+
+    const entryPrice = $("#entryPrice");
+    entryPrice.on("input", function (event) {
+      const value = event.target.value;
+
+      // 使用正则表达式匹配并限制输入的值
+      const regex = /^\d*\.?\d{0,2}$/;
+      if (!regex.test(value)) {
+        // 限制为两位小数
+        event.target.value = value.slice(0, -1);
+      }
+    });
+
+    const categorySearch = $("#categorySearch");
+    const entrySearch = $("#entrySearch");
+
+    // 监听输入框的 keydown 事件
+    categorySearch.on("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        fetchCategories();
+      }
+    });
+
+    // 监听输入框的 keydown 事件
+    entrySearch.on("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        fetchEntries();
+      }
+    });
+  });
+</script>

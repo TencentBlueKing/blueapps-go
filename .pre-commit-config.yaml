@@ -1,0 +1,18 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+# Don’t add golangci-lint due to its poor checking speed and IDEs already provide linting capabilities.
+repos:
+  - repo: local
+    hooks:
+      - id: doc
+        name: doc
+        entry: make doc
+        language: golang
+      - id: fmt
+        name: fmt
+        entry: make fmt
+        language: golang
+      - id: vet
+        name: vet
+        entry: make vet
+        language: golang

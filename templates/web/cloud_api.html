@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <title>{{ i18n "Cloud API Example" .lang }}</title>
+    <link rel="icon" href="static/image/favicon.png" type="image/x-icon" />
+  </head>
+  <body class="flex flex-col bg-gray-50 min-h-screen">
+    {{- template "common.header" . }}
+    <!-- Info Msg Box -->
+    {{- template "common.infoBox" . }}
+    <!-- Error Msg Box -->
+    {{- template "common.errorBox" . }}
+    <main class="flex-grow">
+      <div class="mx-auto p-4 container">
+        <h1 class="mb-2 text-3xl">{{ i18n "Send Email" .lang }}</h1>
+        <!-- Cloud api permission tips -->
+        <div class="inline-block border-orange-400 bg-orange-100 mx-auto my-4 px-4 py-2 border rounded-md text-gray-600">
+          ⚠ {{ i18n "Ensure that you have applied the component api `cmsi.send_mail` permission for current app on `PaaS Developer Center - Cloud API Permissions` page." .lang }}
+        </div>
+        <!-- Email Form -->
+        <form id="emailForm" class="space-y-4">
+          <div>
+            <label for="receiver" class="block font-medium text-gray-700">{{ i18n "Receiver" .lang }}<span class="ml-2 text-red-500">*</span></label>
+            <input
+              type="email"
+              id="receiver"
+              class="block border-gray-300 px-3 py-2 border rounded-md w-full lg:w-2/3"
+              placeholder='{{ i18n "Can only send emails to yourself currently" .lang }}'
+            />
+          </div>
+          <div>
+            <label for="title" class="block font-medium text-gray-700">{{ i18n "Title" .lang }}<span class="ml-2 text-red-500">*</span></label>
+            <input
+              type="text"
+              id="title"
+              class="block border-gray-300 px-3 py-2 border rounded-md w-full lg:w-2/3"
+              value="Lorem Ipsum"
+              placeholder='{{ i18n "Email Title" .lang }}'
+            />
+          </div>
+          <div class="w-full lg:w-2/3">
+            <label for="content" class="block font-medium text-gray-700">{{ i18n "Content" .lang }}<span class="ml-2 text-red-500">*</span></label>
+            <div id="content" class="bg-white h-72">
+              <div class="ql-editor" contenteditable="true" data-placeholder="Compose an epic...">
+                <!-- Lorem Ipsum is simply dummy text of the printing and typesetting industry. -->
+                <!-- More about or generate Lorem Ipsum: https://www.lipsum.com/ -->
+                <h1 class="ql-align-center"><span>Lorem Ipsum</span></h1>
+                <h4 class="ql-align-center">
+                  <em>"Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit..."</em>
+                </h4>
+                <h5 class="ql-align-center">
+                  <span>"Sed facilisis viverra bibendum. Morbi congue dolor a posuere tincidunt..."</span>
+                </h5>
+                <p><br /></p>
+                <p class="ql-align-justify">
+                  <span
+                    >Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
+                    aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+                    occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</span
+                  >
+                </p>
+              </div>
+            </div>
+          </div>
+          <button type="button" onclick="sendEmail()" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded text-white">✈️ {{ i18n "Send" .lang }}</button>
+          <button type="button" onclick="resetForm()" class="border-gray-500 px-4 py-2 border rounded text-gray-500">{{ i18n "Reset" .lang }}</button>
+        </form>
+      </div>
+    </main>
+    {{- template "common.footer" . }}
+  </body>
+</html>
+
+<script>
+  // 初始化富文本编辑器
+  const quill = new Quill("#content", {
+    modules: {
+      toolbar: [
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ["bold", "italic", "underline", "code-block"],
+        [{ align: [] }],
+        [{ list: "ordered" }, { list: "bullet" }],
+        [{ color: [] }, { background: [] }],
+        ["clean"],
+      ],
+    },
+    placeholder: "Compose an epic...",
+    theme: "snow",
+  });
+
+  function sendEmail() {
+    const receiverInput = $("#receiver");
+    const titleInput = $("#title");
+
+    if (!receiverInput.val()) {
+      showError({{ i18n "Email receiver required!" .lang }});
+      return;
+    }
+    if (!titleInput.val()) {
+      showError({{ i18n "Email title required!" .lang }});
+      return;
+    }
+
+    content = quill.root.innerHTML;
+    if (!content) {
+      showError({{ i18n "Email content required!" .lang }});
+      return;
+    }
+    content =
+      `
+    <style>
+    .ql-align-left {
+        text-align: left;
+    }
+    .ql-align-center {
+        text-align: center;
+    }
+    .ql-align-right {
+        text-align: right;
+    }
+    .ql-align-justify {
+        text-align: justify;
+    }
+    </style>
+    ` + content;
+
+    axios
+      .post("api/emails", {
+        receiver: receiverInput.val(),
+        title: titleInput.val(),
+        content: content,
+      })
+      .then(() => {
+        showInfo({{ i18n "Email sent successfully" .lang }});
+      })
+      .catch((error) => {
+        errorMsg = error.response ? error.response.data.message : error.message;
+        showError({{ i18n "Failed to send email: " .lang }} + errorMsg);
+      });
+  }
+
+  function resetForm() {
+    $("#receiver").val("");
+    $("#title").val("");
+    quill.root.innerHTML = "";
+  }
+
+  $(document).ready(function () {
+    // 为 axios 预设 csrf token
+    const csrfToken = Cookies.get({{ .appID }} + "-csrf-token");
+    if (csrfToken) {
+        axios.defaults.headers.common['X-CSRF-Token'] = csrfToken;
+    }
+  });
+</script>
