@@ -314,7 +314,7 @@ func loadServiceConfigFromEnv() (ServiceConfig, error) {
 	}
 	return ServiceConfig{
 		Server: ServerConfig{
-			Port:         cast.ToInt(envx.Get("PORT", "8080")),
+			Port:         cast.ToInt(envx.Get("PORT", "5000")),
 			GraceTimeout: cast.ToInt(envx.Get("GRACE_TIMEOUT", "30")),
 			GinRunMode: envx.Get(
 				"GIN_RUN_MODE",

@@ -87,7 +87,7 @@ platform:
 service:
   # Gin Web 服务
   server:
-    port: 8080
+    port: 5000
     graceTimeout: 30
     ginRunMode: debug
   # 日志配置
