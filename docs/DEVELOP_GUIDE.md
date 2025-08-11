@@ -199,7 +199,7 @@ $ go run main.go scheduler --conf=configs/config.yaml
 你可以通过以下方式，判断服务是否正常启动：
 
 - 观察控制台输出的标准输出日志
-- 浏览器访问 <http://appdev.example.com:8080>
+- 浏览器访问 <http://appdev.example.com:5000>
 
 ## 进阶功能
 
@@ -317,6 +317,7 @@ service:
 1. 检查浏览器 Cookies 中是否存在 **同名但不同域** 的 `blueapps-go-csrf` / `blueapps-go-csrf-token`，若有需清理后重试。
 2. 如果是前后端分离开发，则需要检查是否有按照本节说明，合理配置 CORS 并且在请求的 Header 中设置 CSRF Token。
 3. 如果不涉及前后端分离开发（使用与示例相同的 GoTemplate 编写 html 页面），则可以参考文件 `templates/web/crud.html` 中的实现，为 axios 设置 CSRFToken。
+4. 如果是从 Cookies 中获取到的 CSRF Token，并且要用于 API 测试工具（如 Postman，Apifox 等），需先 urldecode 再使用：`python -c "from urllib.parse import unquote; print(unquote('6W%2FAa%2BLP%2B7m7%2Fo0Q%3D%3D'))"`
 
 ### 用户访问控制（白名单）
 
