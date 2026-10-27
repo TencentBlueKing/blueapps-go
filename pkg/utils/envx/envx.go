@@ -74,11 +74,14 @@ func GetBool(key string) bool {
 	}
 }
 
-// DecryptEncryptedEnvironment decrypts PaaS-managed encrypted environment
-// variables in place. The PaaS platform provides the key and the comma-separated
-// variable-name list before the process starts. Only listed values with the
-// bkpaas_enc$ prefix are changed.
+// DecryptEncryptedEnvironment restores PaaS-managed sensitive variables before
+// config loading. KMS-enabled deployments use mounted credential files; other
+// deployments only decrypt listed variables with the bkpaas_enc$ prefix.
 func DecryptEncryptedEnvironment() error {
+	if GetBool("BKPAAS_KMS_ENABLED") {
+		return decryptKMSEnvironment()
+	}
+
 	secretKey := os.Getenv(paasEncryptSecretKeyEnv)
 	encryptedKeys := os.Getenv(paasEncryptedEnvKeysEnv)
 	if secretKey == "" || encryptedKeys == "" {

@@ -11,6 +11,7 @@ replace github.com/gorilla/csrf => github.com/gorilla/csrf v1.7.2
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/TencentBlueKing/bk-apigateway-sdks v1.1.2
+	github.com/TencentBlueKing/bk-kms-sdk/go v1.0.0
 	github.com/coocood/freecache v1.2.4
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/deckarep/golang-set/v2 v2.8.0

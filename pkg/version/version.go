@@ -32,7 +32,7 @@ var (
 	// BuildTime 二进制构建时间
 	BuildTime = "--"
 	// TmplVersion 开发框架模板版本（不建议 SaaS 开发者修改该值）
-	TmplVersion = "1.7.2"
+	TmplVersion = "1.7.3"
 	// GoVersion Go 版本号
 	GoVersion = runtime.Version()
 )

@@ -15,6 +15,8 @@ github.com/Masterminds/sprig/v3 v3.3.0 h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe
 github.com/Masterminds/sprig/v3 v3.3.0/go.mod h1:Zy1iXRYNqNLUolqCpL4uhk6SHUMAOSCzdgBfDb35Lz0=
 github.com/TencentBlueKing/bk-apigateway-sdks v1.1.2 h1:UvxfSXPHmQOElpseFpZk5Oh09bk6Y+fBJLJkmRBjLwY=
 github.com/TencentBlueKing/bk-apigateway-sdks v1.1.2/go.mod h1:FOsAjbQDWYoHwmVnNV3ZdNd+pYlWSbz1sxWEegkf8fI=
+github.com/TencentBlueKing/bk-kms-sdk/go v1.0.0 h1:IQ4TjcstagXxHRsiU/isdOmSi9gVt44IRsqbvkywu+8=
+github.com/TencentBlueKing/bk-kms-sdk/go v1.0.0/go.mod h1:KnMcaPsydcio/pzuazMSUNcYkctkBbbujpn6av8wHtY=
 github.com/TencentBlueKing/gopkg v1.3.0 h1:WQbhfW87O8y0EW+DjvsDZ/3Z8Hfxg2pbD2KDD7OK0is=
 github.com/TencentBlueKing/gopkg v1.3.0/go.mod h1:C8xV79ap0bF2pR10YfhsxO5w5LtJlPakrRunkRbl2yw=
 github.com/andybalholm/brotli v1.2.0 h1:ukwgCxwYrmACq68yiUqwIWnGY0cTPox/M94sVwToPjQ=
