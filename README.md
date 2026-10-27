@@ -27,6 +27,17 @@
 
 开发者可以通过阅读 [开发使用指南](docs/DEVELOP_GUIDE.md) 来了解如何快速上手使用蓝鲸 Go 开发框架。
 
+## KMS 敏感变量
+
+当 PaaS 平台为应用开启 KMS 托管时，会注入 `BKPAAS_KMS_ENABLED=true`，并挂载
+`/etc/secrets/envelope` 和 `/etc/secrets/private-key`。框架在加载配置前使用官方 KMS SDK
+解密部署信封，将其中 `schema_version: 1` 的 `env` 字符串映射写入当前进程环境，
+供现有 MySQL、RabbitMQ、Redis、制品库和 OpenTelemetry 等配置读取。业务无需修改变量名。
+Pod 定义中的环境变量与启动命令无需包含这些敏感值。
+
+KMS 开启后，文件缺失、解密失败或信封格式不正确会使配置加载失败，避免使用过期凭证。
+未开启 KMS 时，保留原有环境变量解密逻辑。本地显式指定的配置文件仍按文件内容加载。
+
 ## 支持
 
 - [PaaS 产品白皮书](https://bk.tencent.com/docs/markdown/ZH/PaaS/1.0/UserGuide/Overview/README.md)
